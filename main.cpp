@@ -25,7 +25,7 @@ enum Scene {
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     // DXƒ‰ƒCƒuƒ‰ƒŠ‰Šú‰»
     ChangeWindowMode(TRUE);
-    SetGraphMode(1920, 1080, 32);
+    SetGraphMode(1200, 675, 32);
     if (DxLib_Init() == -1) return -1;
     SetDrawScreen(DX_SCREEN_BACK);
 
