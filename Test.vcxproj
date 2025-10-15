@@ -141,11 +141,24 @@
   <ItemGroup>
     <ClCompile Include="Button3D.cpp" />
     <ClCompile Include="CandleGauge.cpp" />
+    <ClCompile Include="ClearScene.cpp" />
+    <ClCompile Include="GameOverScene.cpp" />
+    <ClCompile Include="LoadScene.cpp" />
+    <ClCompile Include="LogoScene.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PlayScene.cpp" />
+    <ClCompile Include="TitleScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Button3D.h" />
     <ClInclude Include="CandleGauge.h" />
+    <ClInclude Include="ClearScene.h" />
+    <ClInclude Include="GameOverScene.h" />
+    <ClInclude Include="LoadScene.h" />
+    <ClInclude Include="LogoScene.h" />
+    <ClInclude Include="PlayScene.h" />
+    <ClInclude Include="SceneBase.h" />
+    <ClInclude Include="TitleScene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
