@@ -1,9 +1,10 @@
-﻿#include "DxLib.h"
+﻿/*https://github.com/Terrarian125/Team_Production*/
+#include "DxLib.h"
 #include "LogoScene.h"
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     ChangeWindowMode(TRUE);
-    SetGraphMode(1200, 675, 32);
+    SetGraphMode(1280, 720, 32);
     if (DxLib_Init() == -1) return -1;
     SetDrawScreen(DX_SCREEN_BACK);
 
