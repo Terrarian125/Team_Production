@@ -1,4 +1,4 @@
-﻿/*https://github.com/Terrarian125/Team_Production*/
+﻿//https://github.com/Terrarian125/Team_Production
 #include "DxLib.h"
 #include "LogoScene.h"
 
