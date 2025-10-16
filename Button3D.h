@@ -3,13 +3,13 @@
 
 class Button3D {
 private:
-    int x, y, r;
+    float x, y, r;
     bool isOn;
 
 public:
-    Button3D() : x(0), y(0), r(40), isOn(false) {}
-    void Create(int px, int py, int radius);
+    Button3D(float px = 0, float py = 0, float pr = 50.0f);
     void Update();
     void Draw();
-    bool GetState() const { return isOn; }
+    bool IsOn() const { return isOn; }
+    bool IsMouseInside() const;
 };

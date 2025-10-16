@@ -6,10 +6,9 @@ private:
     float x, y;
     float width, height;
     float current;
-    unsigned int color;
 
 public:
     CandleGauge(float px, float py, float w, float h);
-    void Update(float speed, bool isActive);
-    void Draw();
+    void Update(float offSpeed, float onSpeed, float awaySpeed, bool isOn, bool isMouseAway);
+    void Draw(bool isOn, bool reverse = false); // reverse=trueÇ≈ç∂Å®âEÇ…å∏è≠
 };

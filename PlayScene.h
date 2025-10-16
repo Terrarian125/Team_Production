@@ -12,6 +12,7 @@ struct EnemyEvent {
 
 class PlayScene : public SceneBase {
     int bg;
+	int goal;
     int stepSE;
     int stepCount;
     int walkAnim;

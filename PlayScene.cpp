@@ -6,11 +6,15 @@
 #include <DxLib.h>
 
 PlayScene::PlayScene()
-    : gauge(720, 630, 200, 30), currentEnemyIndex(-1),
-    stepCount(0), walkAnim(0), frame(0), enemyVisible(false), enemyAlpha(0)
+	: button(640, 550, 30), gauge(390, 600, 500, 25), currentEnemyIndex(-1) 
 {
-    button.Create(600, 580, 40);
+    // ゲージの下中央に配置
+    CandleGauge gauge(390, 600, 500, 25);
+    // ボタンはゲージより上に配置
+    Button3D button(640, 550, 30);
+
     bg = LoadGraph("Data/bg.png");
+	goal = LoadGraph("Data/goal.png");
     stepSE = LoadSoundMem("Data/step.mp3");
 
     // 敵画像をまとめて読み込み座標も設定
@@ -77,7 +81,8 @@ SceneBase* PlayScene::Update() {
     }
 
     button.Update();
-    gauge.Update(0.2f, button.GetState());
+	gauge.Update(0.2f, 0.5f, 1.0f, button.IsOn(), !button.IsMouseInside());
+    //gauge.Update(0.2f, button.GetState());
 
     if (stepCount >= 30) return new ClearScene();
     return this;
@@ -94,6 +99,6 @@ void PlayScene::Draw() {
     }
 
     button.Draw();
-    gauge.Draw();
+	gauge.Draw(button.IsOn(), true);
     DrawFormatString(50, 50, GetColor(255, 255, 255), "Step: %d", stepCount);
 }
