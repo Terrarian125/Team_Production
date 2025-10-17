@@ -8,12 +8,15 @@
 PlayScene::PlayScene()
 	: button(640, 550, 30), gauge(390, 600, 500, 25), currentEnemyIndex(-1) 
 {
-    // ゲージの下中央に配置
+    // ゲージを下中央に配置
     CandleGauge gauge(390, 600, 500, 25);
     // ボタンはゲージより上に配置
     Button3D button(640, 550, 30);
 
-    bg = LoadGraph("Data/bg.png");
+    bg00 = LoadGraph("Data/road1 light.png");
+	bg01 = LoadGraph("Data/road2 light.png");
+	bg02 = LoadGraph("Data/road1.png");
+	bg03 = LoadGraph("Data/road2.png");
 	goal = LoadGraph("Data/goal.png");
     stepSE = LoadSoundMem("Data/step.mp3");
 
@@ -23,16 +26,21 @@ PlayScene::PlayScene()
         sprintf_s(path, "Data/enemy%02d.png", i);
         int g = LoadGraph(path);
 
-        // 座標は適当に設定（あとで変更可能）
-        int x = 200 + i * 50;
-        int y = 100 + i * 30;
+        // 座標
+        int x = 0;
+        int y = 0;
 
         enemies.push_back({ (i + 1) * 10, g, x, y }); // 10歩目に00, 20歩目に01...
     }
 }
 
-PlayScene::~PlayScene() {
-    DeleteGraph(bg);
+PlayScene::~PlayScene() 
+{
+	DeleteGraph(bg03);
+	DeleteGraph(bg02);
+	DeleteGraph(bg01);
+    DeleteGraph(bg00);
+	DeleteGraph(goal);
     DeleteSoundMem(stepSE);
     for (auto& e : enemies) DeleteGraph(e.graph);
 }
@@ -84,12 +92,24 @@ SceneBase* PlayScene::Update() {
 	gauge.Update(0.2f, 0.5f, 1.0f, button.IsOn(), !button.IsMouseInside());
     //gauge.Update(0.2f, button.GetState());
 
-    if (stepCount >= 30) return new ClearScene();
-    return this;
+	// ゴール判定（現状30歩目）
+	if (stepCount >= 30) {
+		DrawGraph(540, 200 + camOffsetY, goal, TRUE);
+		frame++;
+		if (frame > 180) return new ClearScene();
+	}
+
+	// 死亡判定（CandleGaugeが0になったら）
 }
 
 void PlayScene::Draw() {
-    DrawGraph(0, 0, bg, TRUE);
+    //背景描画
+	if (stepCount % 2 == 0) {
+		DrawGraph(0, 0, bg00, TRUE);
+	}
+	else {
+		DrawGraph(0, 0, bg01, TRUE);
+	}
 
     if (enemyVisible && currentEnemyIndex >= 0) {
         const EnemyEvent& e = enemies[currentEnemyIndex];

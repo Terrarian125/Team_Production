@@ -11,7 +11,9 @@ struct EnemyEvent {
 };
 
 class PlayScene : public SceneBase {
-    int bg;
+private:
+	int bg00, bg01, bg02, bg03;
+
 	int goal;
     int stepSE;
     int stepCount;

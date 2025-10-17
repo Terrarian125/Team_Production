@@ -2,8 +2,8 @@
 #include "SceneBase.h"
 
 class GameOverScene : public SceneBase {
+	int go00;
 	int go01;
-	int go02;
 	int frame;
 public:
 	GameOverScene();
