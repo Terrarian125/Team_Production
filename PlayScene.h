@@ -5,28 +5,28 @@
 #include <vector>
 
 struct EnemyEvent {
-    int stepTrigger;  // 何歩目で出すか
-    int graph;        // 敵画像ハンドル
-    int x, y;         // 描画座標
+    int stepTrigger;
+    int graph;
+    int x, y;
 };
 
 class PlayScene : public SceneBase {
-private:
-	int bg00, bg01, bg02, bg03;
-
-	int goal;
+    int bg00, bg01;
+    int enemyGraph;
     int stepSE;
     int stepCount;
     int walkAnim;
     int frame;
+
+    int eventState;   // 0=fadein,1=hold,2=fadeout
+    int bgAlpha;
+    int bgIndex;      // 現在表示中のイベント背景index
     bool enemyVisible;
     int enemyAlpha;
 
     Button3D button;
     CandleGauge gauge;
-
-    std::vector<EnemyEvent> enemies; // 敵リスト
-    int currentEnemyIndex;            // 現在出現中の敵
+    std::vector<int> eventBG;
 
 public:
     PlayScene();

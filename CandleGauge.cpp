@@ -44,3 +44,7 @@ void CandleGauge::Draw(bool isOn, bool reverse) {
         }
     }
 }
+
+bool CandleGauge::IsEmpty() const {
+    return current <= 0.0f;
+}
