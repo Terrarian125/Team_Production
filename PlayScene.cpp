@@ -4,6 +4,7 @@
 #include <cmath>
 #include <DxLib.h>
 
+
 PlayScene::PlayScene()
     : button(640, 550, 30), gauge(390, 600, 500, 25),
     stepCount(0), walkAnim(0), frame(0),
