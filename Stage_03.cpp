@@ -1,34 +1,33 @@
-ï»¿#include "PlayScene.h"
-#include "GameOverScene.h"
 #include "Stage_03.h"
-#include "Stage_02.h"
+#include "GameOverScene.h"
+#include "ClearScene.h"
 #include <DxLib.h>
 #include <cmath>
 #include <cstdio>
 
-PlayScene::PlayScene()
+Stage_03::Stage_03()
     : button(640, 550, 30), gauge(390, 600, 500, 25),
     stepCount(0), walkAnim(0), frame(0),
     eventState(0), bgAlpha(0), bgIndex(-1),
     enemyVisible(false), enemyAlpha(0),
     fadeAlpha(0), fadeSpeed(8),
-    // èƒŒæ™¯æºã‚Œå¤‰æ•°ã®åˆæœŸåŒ–
+    // ”wŒi—h‚ê•Ï”‚Ì‰Šú‰»
     bgShakeOffset(0.0f), bgShakeSpeed(0.0f), bgShakeMax(5.0f)
 {
-    bg00 = LoadGraph("Data/Stage_01/road1 light.png");
-    bg01 = LoadGraph("Data/Stage_01/road2 light.png");
+    bg00 = LoadGraph("Data/Stage_03/road1 light.png");
+    bg01 = LoadGraph("Data/Stage_03/road2 light.png");
 
     for (int i = 10; i <= 13; i++) {
         char path[64];
-        sprintf_s(path, "Data/Stage_01/bg%d.png", i);
+        sprintf_s(path, "Data/Stage_03/bg%d.png", i);
         eventBG.push_back(LoadGraph(path));
     }
 
-    enemyGraph = LoadGraph("Data/Stage_01/enemy00.png");
-    stepSE = LoadSoundMem("Data/Stage_01/step.mp3");
+    enemyGraph = LoadGraph("Data/Stage_03/enemy00.png");
+    stepSE = LoadSoundMem("Data/Stage_03/step.mp3");
 }
 
-PlayScene::~PlayScene() {
+Stage_03::~Stage_03() {
     DeleteGraph(bg00);
     DeleteGraph(bg01);
     for (auto g : eventBG) DeleteGraph(g);
@@ -36,16 +35,16 @@ PlayScene::~PlayScene() {
     DeleteSoundMem(stepSE);
 }
 
-SceneBase* PlayScene::Update() {
+SceneBase* Stage_03::Update() {
     if (CheckHitKey(KEY_INPUT_ESCAPE)) return new GameOverScene();
 
-    // Wã‚­ãƒ¼ã®ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ å‡¦ç†ã®ãŸã‚ã®å¤‰æ•°
+    // WƒL[‚ÌƒN[ƒ‹ƒ^ƒCƒ€ˆ—‚Ì‚½‚ß‚Ì•Ï”
     static int lastWPressTime = 0;
     int nowTime = GetNowCount();
 
     bool canControl = !enemyVisible;
 
-    // Wã‚­ãƒ¼ãŒæŠ¼ã•ã‚Œã¦ã„ã‚‹ã‹ã€ã‹ã¤ã€å‰å›æŠ¼ã—ã¦ã‹ã‚‰1000msä»¥ä¸ŠçµŒéã—ã¦ã„ã‚‹ã‹ã‚’ç¢ºèª
+    // WƒL[‚ª‰Ÿ‚³‚ê‚Ä‚¢‚é‚©A‚©‚ÂA‘O‰ñ‰Ÿ‚µ‚Ä‚©‚ç1000msˆÈãŒo‰ß‚µ‚Ä‚¢‚é‚©‚ğŠm”F
     if (canControl && CheckHitKey(KEY_INPUT_W) && (nowTime - lastWPressTime >= 1000)) {
         stepCount++;
         PlaySoundMem(stepSE, DX_PLAYTYPE_BACK);
@@ -54,32 +53,32 @@ SceneBase* PlayScene::Update() {
             bgIndex = stepCount - 10;
         }
 
-        // Wã‚­ãƒ¼ã‚’æŠ¼ã—ãŸæ™‚åˆ»ã‚’æ›´æ–°
+        // WƒL[‚ğ‰Ÿ‚µ‚½‚ğXV
         lastWPressTime = nowTime;
 
-        // Wã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸã¨ãã«æºã‚Œã‚’é–‹å§‹
+        // WƒL[‚ª‰Ÿ‚³‚ê‚½‚Æ‚«‚É—h‚ê‚ğŠJn
         bgShakeOffset = -bgShakeMax;
         bgShakeSpeed = bgShakeMax / 10.0f;
     }
 
-    // --- èƒŒæ™¯ã®æºã‚Œã‚’æ›´æ–° ---
+    // --- ”wŒi‚Ì—h‚ê‚ğXV ---
     if (bgShakeSpeed != 0.0f) {
         bgShakeOffset += bgShakeSpeed;
 
-        // ä¸Šæ–¹å‘ã¸ã®æºã‚ŒãŒæœ€å¤§ã«é”ã—ãŸã‚‰åè»¢
+        // ã•ûŒü‚Ö‚Ì—h‚ê‚ªÅ‘å‚É’B‚µ‚½‚ç”½“]
         if (bgShakeSpeed > 0 && bgShakeOffset >= bgShakeMax) {
             bgShakeOffset = bgShakeMax;
             bgShakeSpeed *= -1.0f;
         }
-        // ä¸‹æ–¹å‘ã¸ã®æºã‚ŒãŒæœ€å¤§ã«é”ã—ãŸã‚‰åè»¢
+        // ‰º•ûŒü‚Ö‚Ì—h‚ê‚ªÅ‘å‚É’B‚µ‚½‚ç”½“]
         else if (bgShakeSpeed < 0 && bgShakeOffset <= -bgShakeMax) {
             bgShakeOffset = -bgShakeMax;
             bgShakeSpeed *= -1.0f;
         }
 
-        // æºã‚ŒãŒã»ã¼ä¸­å¤®ï¼ˆ0ï¼‰ã«æˆ»ã£ãŸã‚‰åœæ­¢
-        // ã“ã®æ¡ä»¶ã¯ã€æºã‚ŒãŒä¸Šæ–¹å‘ã‹ã‚‰ä¸‹æ–¹å‘ï¼ˆbgShakeSpeed < 0ï¼‰ã«åˆ‡ã‚Šæ›¿ã‚ã£ã¦ã€
-        // ã‹ã¤ã‚ªãƒ•ã‚»ãƒƒãƒˆãŒä¸­å¤®ä»˜è¿‘ï¼ˆ-1.0f ã‹ã‚‰ 1.0fï¼‰ã«ã‚ã‚‹ã“ã¨ã‚’ãƒã‚§ãƒƒã‚¯ã—ã¦ã„ã¾ã™ã€‚
+        // —h‚ê‚ª‚Ù‚Ú’†‰›i0j‚É–ß‚Á‚½‚ç’â~
+        // ‚±‚ÌğŒ‚ÍA—h‚ê‚ªã•ûŒü‚©‚ç‰º•ûŒüibgShakeSpeed < 0j‚ÉØ‚è‘Ö‚í‚Á‚ÄA
+        // ‚©‚ÂƒIƒtƒZƒbƒg‚ª’†‰›•t‹ßi-1.0f ‚©‚ç 1.0fj‚É‚ ‚é‚±‚Æ‚ğƒ`ƒFƒbƒN‚µ‚Ä‚¢‚Ü‚·B
         if (bgShakeSpeed < 0 && bgShakeOffset >= -1.0f && bgShakeOffset <= 1.0f) {
             bgShakeOffset = 0.0f;
             bgShakeSpeed = 0.0f;
@@ -111,14 +110,13 @@ SceneBase* PlayScene::Update() {
 
     if (eKeyPressedFrame != -1) {
         int elapsed = GetNowCount() - eKeyPressedFrame;
-        if (elapsed >= 2000)
-            return new Stage_02();
+        if (elapsed >= 2000) DxLib_End();
     }
 
-    // --- UI æ›´æ–° ---
+    // --- UI XV ---
     button.Update();
 
-    // --- è·é›¢ã«å¿œã˜ãŸæš—è»¢ ---
+    // --- ‹——£‚É‰‚¶‚½ˆÃ“] ---
     int mx, my;
     GetMousePoint(&mx, &my);
     float dx = mx - button.GetX();
@@ -130,33 +128,33 @@ SceneBase* PlayScene::Update() {
     if (fadeAlpha > 255) fadeAlpha = 255;
     if (fadeAlpha < 0) fadeAlpha = 0;
 
-    // --- ã‚²ãƒ¼ã‚¸æ›´æ–° ---
+    // --- ƒQ[ƒWXV ---
     gauge.Update(0.05f, 0.08f, 0.15f, button.IsOn(), !button.IsMouseInside());
     if (gauge.IsEmpty()) return new GameOverScene();
 
     return this;
 }
 
-void PlayScene::Draw() {
-    // --- èƒŒæ™¯ ---
-    // bgShakeOffset ã‚’åŠ ç®—ã—ã¦æç”»ã—ã€ç”»åƒã‚’ä¸Šä¸‹ã«æºã‚‰ã™
+void Stage_03::Draw() {
+    // --- ”wŒi ---
+    // bgShakeOffset ‚ğ‰ÁZ‚µ‚Ä•`‰æ‚µA‰æ‘œ‚ğã‰º‚É—h‚ç‚·
     DrawGraph(0, (int)bgShakeOffset, (stepCount % 2 == 0 ? bg00 : bg01), TRUE);
 
     for (int i = 0; i <= bgIndex; i++) {
         if (i >= 0 && i < (int)eventBG.size()) DrawGraph(0, (int)bgShakeOffset, eventBG[i], TRUE);
     }
 
-    // --- æ•µ ---
+    // --- “G ---
     if (enemyVisible) {
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, enemyAlpha);
         DrawGraph(0, (int)bgShakeOffset, enemyGraph, TRUE);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
-    // --- UI é€šå¸¸æç”» ---
+    // --- UI ’Êí•`‰æ ---
     gauge.Draw(button.IsOn(), true);
 
-    // --- æš—è»¢ ---
+    // --- ˆÃ“] ---
     if (fadeAlpha > 0) {
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, fadeAlpha);
         DrawBox(0, 0, 1280, 720, GetColor(0, 0, 0), TRUE);

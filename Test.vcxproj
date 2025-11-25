@@ -147,6 +147,8 @@
     <ClCompile Include="LogoScene.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PlayScene.cpp" />
+    <ClCompile Include="Stage_02.cpp" />
+    <ClCompile Include="Stage_03.cpp" />
     <ClCompile Include="TitleScene.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -158,6 +160,8 @@
     <ClInclude Include="LogoScene.h" />
     <ClInclude Include="PlayScene.h" />
     <ClInclude Include="SceneBase.h" />
+    <ClInclude Include="Stage_02.h" />
+    <ClInclude Include="Stage_03.h" />
     <ClInclude Include="TitleScene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
