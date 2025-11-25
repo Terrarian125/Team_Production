@@ -1,25 +1,26 @@
 ﻿#include "PlayScene.h"
 #include "GameOverScene.h"
 #include "ClearScene.h"
-#include <cmath>
 #include <DxLib.h>
-
+#include <cmath>
+#include <cstdio>
 
 PlayScene::PlayScene()
     : button(640, 550, 30), gauge(390, 600, 500, 25),
     stepCount(0), walkAnim(0), frame(0),
     eventState(0), bgAlpha(0), bgIndex(-1),
-    enemyVisible(false), enemyAlpha(0)
+    enemyVisible(false), enemyAlpha(0),
+    fadeAlpha(0), fadeSpeed(8),
+    // 背景揺れ変数の初期化
+    bgShakeOffset(0.0f), bgShakeSpeed(0.0f), bgShakeMax(5.0f)
 {
-    // 通常背景
     bg00 = LoadGraph("Data/road1 light.png");
     bg01 = LoadGraph("Data/road2 light.png");
 
-    // イベント用背景（vector に格納）
     for (int i = 10; i <= 13; i++) {
         char path[64];
         sprintf_s(path, "Data/bg%d.png", i);
-        eventBG.push_back(LoadGraph(path)); // ← 修正済み
+        eventBG.push_back(LoadGraph(path));
     }
 
     enemyGraph = LoadGraph("Data/enemy00.png");
@@ -37,62 +38,69 @@ PlayScene::~PlayScene() {
 SceneBase* PlayScene::Update() {
     if (CheckHitKey(KEY_INPUT_ESCAPE)) return new GameOverScene();
 
-    static int prevW = 0;
-    int nowW = CheckHitKey(KEY_INPUT_W);
+    // Wキーのクールタイム処理のための変数
+    static int lastWPressTime = 0;
+    int nowTime = GetNowCount();
 
-    // 敵出現中だけ操作禁止
     bool canControl = !enemyVisible;
 
-    // --- 歩行入力 ---
-    if (canControl && nowW && !prevW) {
+    // Wキーが押されているか、かつ、前回押してから1000ms以上経過しているかを確認
+    if (canControl && CheckHitKey(KEY_INPUT_W) && (nowTime - lastWPressTime >= 1000)) {
         stepCount++;
         PlaySoundMem(stepSE, DX_PLAYTYPE_BACK);
 
-        // 歩数に応じてイベント背景を追加（フェードなしで残る）
         if (stepCount >= 10 && stepCount <= 12) {
-            bgIndex = stepCount - 10; // bg10～bg12
+            bgIndex = stepCount - 10;
+        }
+
+        // Wキーを押した時刻を更新
+        lastWPressTime = nowTime;
+
+        // Wキーが押されたときに揺れを開始
+        bgShakeOffset = -bgShakeMax;
+        bgShakeSpeed = bgShakeMax / 10.0f;
+    }
+
+    // --- 背景の揺れを更新 ---
+    if (bgShakeSpeed != 0.0f) {
+        bgShakeOffset += bgShakeSpeed;
+
+        // 上方向への揺れが最大に達したら反転
+        if (bgShakeSpeed > 0 && bgShakeOffset >= bgShakeMax) {
+            bgShakeOffset = bgShakeMax;
+            bgShakeSpeed *= -1.0f;
+        }
+        // 下方向への揺れが最大に達したら反転
+        else if (bgShakeSpeed < 0 && bgShakeOffset <= -bgShakeMax) {
+            bgShakeOffset = -bgShakeMax;
+            bgShakeSpeed *= -1.0f;
+        }
+
+        // 揺れがほぼ中央（0）に戻ったら停止
+        // この条件は、揺れが上方向から下方向（bgShakeSpeed < 0）に切り替わって、
+        // かつオフセットが中央付近（-1.0f から 1.0f）にあることをチェックしています。
+        if (bgShakeSpeed < 0 && bgShakeOffset >= -1.0f && bgShakeOffset <= 1.0f) {
+            bgShakeOffset = 0.0f;
+            bgShakeSpeed = 0.0f;
         }
     }
-    prevW = nowW;
 
-    // ★ Wキーが押されている間、walkAnimを更新して揺らす
-    if (nowW) {
-        const float amplitude = 10.0f; // 揺れの最大幅（ピクセル）
-        const float speed = 0.05f;     // 揺れの速さ
-
-        // サインカーブで -amplitude から +amplitude の間の値に
-        walkAnim = (int)(amplitude * std::sin(frame * speed));
-    }
-    else {
-        // Wキーを離したら、徐々に揺れをゼロに戻す (アニメーションをフェードアウトさせるイメージ)
-        if (walkAnim > 0) walkAnim--;
-        else if (walkAnim < 0) walkAnim++;
-        // 1ピクセル未満の揺れは無視して完全にゼロに
-        if (std::abs(walkAnim) <= 1) walkAnim = 0;
-    }
-
-
-    // --- 12歩目でEキー待ち ---
-    static int eKeyPressedFrame = -1; // Eキーが押されたフレームを記録
+    static int eKeyPressedFrame = -1;
     if (stepCount >= 12 && !enemyVisible) {
-        // DrawFormatString(640, 400, GetColor(255, 255, 255), "[E]"); // Drawに移動した方が自然
+        DrawFormatString(640, 400, GetColor(255, 255, 255), "[E]");
         if (CheckHitKey(KEY_INPUT_E)) {
-            // Eキーで敵を出す＆bg13を表示
             enemyVisible = true;
             enemyAlpha = 0;
             frame = 0;
-
-            bgIndex = 3; // bg13に切り替え（vectorの4枚目）
-            eKeyPressedFrame = GetNowCount(); // 押された時間を記録
+            bgIndex = 3; // bg13
+            eKeyPressedFrame = GetNowCount();
         }
     }
 
-    // --- 敵フェード ---
     if (enemyVisible) {
-        // ... (省略: 敵フェード処理)
         frame++;
-        if (frame < 60) enemyAlpha += 4; // フェードイン
-        else if (frame > 180) enemyAlpha -= 4; // フェードアウト
+        if (frame < 60) enemyAlpha += 4;
+        else if (frame > 180) enemyAlpha -= 4;
         if (enemyAlpha < 0) {
             enemyAlpha = 0;
             enemyVisible = false;
@@ -100,60 +108,65 @@ SceneBase* PlayScene::Update() {
         if (enemyAlpha > 255) enemyAlpha = 255;
     }
 
-    // frameのインクリメントは敵フェードの制御にも使われているので、
-    // 敵フェードが終わった後でフレームカウントを進める（今回は全体で一つで問題なし）
-
-    // --- Eキー押下から2秒後にウィンドウを閉じる ---
     if (eKeyPressedFrame != -1) {
         int elapsed = GetNowCount() - eKeyPressedFrame;
-        if (elapsed >= 2000) { // 2000ミリ秒＝2秒 (元のコードの5秒は長すぎたので2秒に短縮)
-            DxLib_End();
-        }
+        if (elapsed >= 2000) DxLib_End();
     }
 
-    // --- UI更新 ---
+    // --- UI 更新 ---
     button.Update();
+
+    // --- 距離に応じた暗転 ---
+    int mx, my;
+    GetMousePoint(&mx, &my);
+    float dx = mx - button.GetX();
+    float dy = my - button.GetY();
+    float dist = sqrtf(dx * dx + dy * dy);
+
+    float maxDist = button.GetR() * 5.0f;
+    fadeAlpha = (int)(255.0f * (dist / maxDist));
+    if (fadeAlpha > 255) fadeAlpha = 255;
+    if (fadeAlpha < 0) fadeAlpha = 0;
+
+    // --- ゲージ更新 ---
     gauge.Update(0.05f, 0.08f, 0.15f, button.IsOn(), !button.IsMouseInside());
     if (gauge.IsEmpty()) return new GameOverScene();
-
-    // 敵フェードの制御以外でframeを進める場所
-    if (!enemyVisible) {
-        frame++; // 敵フェード中でない場合もframeを進める
-    }
 
     return this;
 }
 
-
 void PlayScene::Draw() {
-    // ★ 描画オフセットとして walkAnim を使用
-    int offsetY = walkAnim;
+    // --- 背景 ---
+    // bgShakeOffset を加算して描画し、画像を上下に揺らす
+    DrawGraph(0, (int)bgShakeOffset, (stepCount % 2 == 0 ? bg00 : bg01), TRUE);
 
-    // 通常背景
-    DrawGraph(0, offsetY, (stepCount % 2 == 0 ? bg00 : bg01), TRUE);
-
-    // --- イベント背景（フェードせず、発動済みはずっと残す）---
     for (int i = 0; i <= bgIndex; i++) {
-        if (i >= 0 && i < (int)eventBG.size()) {
-            DrawGraph(0, offsetY, eventBG[i], TRUE);
-        }
+        if (i >= 0 && i < (int)eventBG.size()) DrawGraph(0, (int)bgShakeOffset, eventBG[i], TRUE);
     }
 
-    // --- 敵描画 ---
+    // --- 敵 ---
     if (enemyVisible) {
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, enemyAlpha);
-        DrawGraph(0, offsetY, enemyGraph, TRUE); // ★ オフセット適用
+        DrawGraph(0, (int)bgShakeOffset, enemyGraph, TRUE);
         SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
     }
 
-    // --- 12歩目でEキー待ちの表示 ---
-    if (stepCount >= 12 && !enemyVisible) {
-        // UIなのでオフセットは適用しない
-        DrawFormatString(640, 400, GetColor(255, 255, 255), "[E]");
-    }
-
-    // --- UI ---
-    button.Draw();
+    // --- UI 通常描画 ---
     gauge.Draw(button.IsOn(), true);
-    // DrawFormatString(50, 50, GetColor(255, 255, 255), "Step: %d", stepCount);
+
+    // --- 暗転 ---
+    if (fadeAlpha > 0) {
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, fadeAlpha);
+        DrawBox(0, 0, 1280, 720, GetColor(0, 0, 0), TRUE);
+        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+        int highlightAlpha = 150;
+        SetDrawBlendMode(DX_BLENDMODE_ALPHA, highlightAlpha);
+        button.Draw();
+        gauge.Draw(button.IsOn(), true);
+        SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+    }
+    else {
+        button.Draw();
+    }
 }
